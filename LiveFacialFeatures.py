@@ -23,6 +23,7 @@ import face_recognition
 import keyboard
 import os
 import time 
+import math
 
 capture = cv2.VideoCapture(0)
 detector = dlib.get_frontal_face_detector();
@@ -40,6 +41,10 @@ theSquare = []
 
 rightEyeBox = []
 leftEyeBox = []
+
+# like thing 1 and thing 2, 1 is top, 2 is bottom
+nose1 = []
+nose2 = []
     
 
 # Collin's faceBags identification
@@ -47,7 +52,8 @@ def labelBags(iimage):
     
 
     iimage = face_recognition.load_image_file(iimage)
-
+    
+    
         
     # Find all facial features in all the faces in the image
     face_landmarks_list = face_recognition.face_landmarks(iimage)
@@ -102,6 +108,8 @@ def labelBags(iimage):
                 leftEyeBox[0] = minmin(ll)[0]
                 leftEyeBox[1] = minmin(ll)[1]
                 
+                '''
+                #failed project for rotate
                 leftBrowL = [ ll [0]         [0], ll [0]         [1]]
                 
                 leftBrowR = [ ll [len(ll)-1] [0], ll [len(ll)-1] [1]]
@@ -112,7 +120,7 @@ def labelBags(iimage):
                 leftEyeBox[3] = leftBrowR[1]
                 
                 print("LEFT", ll)
-                
+                '''
                 
                         
             # For bottom_right, x = farthest Right right_eyebrow && y = farthest(bottomest) nose line (vertical)
@@ -125,6 +133,9 @@ def labelBags(iimage):
                 rightEyeBox[0] = maxmax(ll)[0]
                 rightEyeBox[1] = minmin(ll)[1]
                 
+                
+                '''
+                #failed project for rotate
                 rightBrowL = [ll[0][0], ll[0][1]]
                 rightBrowR = [ll[len(ll)-1][0], ll[(len(ll)-1   )][1]]
                 
@@ -134,7 +145,7 @@ def labelBags(iimage):
                 rightEyeBox[3] = rightBrowR[1]
                 
                 print("RIGHT", ll)
-                
+                '''
                  
             # Nose Tip so for y
             if (s == 3):
@@ -143,18 +154,22 @@ def labelBags(iimage):
                 #   one unit to the right, the variable 'slope' will determine how much down (or up)
                 # - if slope is negative, it means the line is like this: /
                 # - if slope is positive, it means the line is like this: \
+
+                nose1 = ll[0]
+                nose2 = ll[len(ll)-1]
                 
-                
+                '''
+                #failed project for rotate
                 noseTip0 = ll[0]
                 noseTip3 = ll[len(ll)-1]
+                
+
                 
                 x1 = (noseTip0[0])
                 y1 = (noseTip0[1])
                 
                 x2 = (noseTip3[0])
                 y2 = (noseTip3[1])
-                print(ll)
-                print(x1, y1, x2, y2)
                 
                 x1 = int(x1)
                 y1 = int(y1)
@@ -166,23 +181,33 @@ def labelBags(iimage):
                 bbb = x1-x2
                 
                 slope = 0
+                
+                
                 if(bbb != 0):
                     slope = aaa / bbb
-                print(slope + 0)
+                
+                down = abs(y1-y2) # tell me how "tall" each eye square should be
+                side = slope # tell me how much to the side the point will be
+                
+                convertAngle(rightEyeBox, down, side)
+                convertAngle(leftEyeBox, down, side)
                 
                 
                 
+                
+                
+                
+                '''
                 
                 
                 theSquare[3] = maxmax(ll)[1]
-                '''
                 leftEyeBox[2] = maxmax(ll)[0]
                 leftEyeBox[3] = maxmax(ll)[1]
                 rightEyeBox[2] = minmin(ll)[0]
                 rightEyeBox[3] = maxmax(ll)[1]
                 print("The {} in this face has the following points: {}".format(facial_feature, face_landmarks[facial_feature]))
                 print(ll)
-                '''
+                
                         
                         
             s = s + 1
@@ -190,6 +215,56 @@ def labelBags(iimage):
         print("The Square:", theSquare)
         print("Right:", rightEyeBox)
         print("Left:", leftEyeBox)
+        
+        
+        # ROATATION start {
+        
+        # Create an Image object from an Image
+    
+        colorImage = Image.fromarray(iimage)
+         
+        
+        # Rotate it by x degrees
+        
+        rotated     = colorImage.rotate(tellMeAngle(nose1, nose2))   
+        print("DEGREEEESSSSSSSSSSSSS", tellMeAngle(nose1, nose2))
+        
+        #rotated.show()
+        rotated.save("justRotated.jpg")
+        
+        endProduct = rotated
+        
+        d = ImageDraw.Draw(endProduct)
+        #actually draw the big rectange for eye bags
+        #print(theSquare)
+        d.rectangle(theSquare, fill=None, outline="white")
+        
+        #d.rectangle(rightEyeBox, fill=None, outline="white")
+        #d.rectangle(leftEyeBox, fill=None, outline="white")
+        
+        #d.line(theSquare, width = 6)
+        d.line(leftEyeBox, width = 6)
+        d.line(rightEyeBox, width = 6)
+        '''
+        for i in range(0, 2, 1):
+            d.line([leftEyeBox[i], leftEyeBox[0]], width = 6)
+            d.line([leftEyeBox[i], leftEyeBox[1]], width = 6)
+        for i in range(0, 2, 1):
+            d.line([rightEyeBox[i], rightEyeBox[0]], width = 6)
+            d.line([rightEyeBox[i], rightEyeBox[1]], width = 6)
+        '''
+        d.rectangle(leftEyeBox, fill=None, outline="white")
+        d.rectangle(rightEyeBox, fill=None, outline="white")
+        
+        endProduct.show()
+        endProduct.save("rotatedProduct.jpg")
+        
+        crop(leftEyeBox, "rotatedProductcropped.jpg", prevName = "justRotated.jpg")
+        crop(rightEyeBox, "rotatedProductcropped.jpg", prevName = "justRotated.jpg")
+
+        # ROTATION end }
+        
+        d = ImageDraw.Draw(pil_image)
         
         #actually draw the big rectange for eye bags
         #print(theSquare)
@@ -201,6 +276,13 @@ def labelBags(iimage):
         #d.line(theSquare, width = 6)
         d.line(leftEyeBox, width = 6)
         d.line(rightEyeBox, width = 6)
+        
+        for i in range(0, 2, 1):
+            d.line([leftEyeBox[i], leftEyeBox[0]], width = 6)
+            d.line([leftEyeBox[i], leftEyeBox[1]], width = 6)
+        for i in range(0, 2, 1):
+            d.line([rightEyeBox[i], rightEyeBox[0]], width = 6)
+            d.line([rightEyeBox[i], rightEyeBox[1]], width = 6)
                     
     
         # Left eyebrow = 1     * (left means left of picture, not person soo <--)
@@ -208,7 +290,8 @@ def labelBags(iimage):
         # Nose tip = 3         *
         # Right eye = 5
         # Left eye = 6
-    
+        
+
     
         '''
         imgg = Image.fromarray(face_recognition.load_image_file("theOG.jpg"))
@@ -218,7 +301,7 @@ def labelBags(iimage):
         '''
         
             
-        crop(theSquare, "cropped_all.jpg")
+        crop(theSquare, "cropped.jpg")
         
         #crop(rightEyeBox, "cropped_right.jpg")
         #crop(leftEyeBox, "croped_left.jpg")
@@ -262,6 +345,51 @@ def crop(pA, name, prevName = "theOG.jpg"):
 
 def correctCord(pA):
     return [ min(pA[0], pA[2]), min(pA[1], pA[3]), max(pA[0], pA[2]), max(pA[1], pA[3]) ]
+
+def convertAngle(array, down, side):
+    
+    print("Side", side)
+    print("Down", down)
+    
+    x2 = int(array[2])
+    y2 = int(array[3])
+    
+    x2 += side
+    y2 += down
+    
+    array[2] = x2
+    array[3] = y2
+    
+def tellMeAngle(noseTop, noseBottom):
+    x1 = int(noseTop[0])
+    y1 = int(noseTop[1])
+    x2 = int(noseBottom[0])
+    y2 = int(noseBottom[0])
+    
+    height = abs(y1-y2)
+    side = abs(x1-x2)
+    
+    if(side == 0):
+        side = 1
+    
+    inRad = math.atan(height/side)
+    inDeg = math.degrees(inRad)
+    final = 90 - inDeg # this cus this is correct, look at drawings lol
+        
+    
+    if(x1 > x2): # this means slanting down left / since top x is farther to x = 0 than bottom x (x wise)
+        return final * 1.4
+        
+    elif(x1 < x2): # this means slanting down right \ since top x is closer to x = 0 than bottom x (x wise)
+        return 360-(final * 1.4) # i mean i guess i could have done -1 * final butt...
+    
+    else: #this means no tilt
+        return 0
+    return 0 # idk why here but here because i do this in java soo... GET RECT-Collin at 12 oclock at night
+    
+    
+    
+    
 
 
 
