@@ -33,16 +33,29 @@ jon_face_encoding = face_recognition.face_encodings(jon_image)[0]
 caden_image = face_recognition.load_image_file("Caden.jpg")
 caden_face_encoding = face_recognition.face_encodings(caden_image)[0]
 
+# Load a third sample picture and learn how to recognize it.
+amaar_image = face_recognition.load_image_file("Amaar.jpg")
+amaar_face_encoding = face_recognition.face_encodings(amaar_image)[0]
+
+# Load a third sample picture and learn how to recognize it.
+john_image = face_recognition.load_image_file("John Xie.jpg")
+john_face_encoding = face_recognition.face_encodings(john_image)[0] 
+
 # Create arrays of known face encodings and their names
 known_face_encodings = [
     collin_face_encoding,
     jon_face_encoding,
-    caden_face_encoding
+    caden_face_encoding,
+    amaar_face_encoding,
+    john_face_encoding
 ]
 known_face_names = [
     "Collin Li",
     "Jonathan",
-    "Caden"
+    "Caden",
+    "Amaar",
+    "Flashy John"
+    
 ]
 
 # Initialize some variables
